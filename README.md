@@ -2,24 +2,9 @@
 
 Stream Deck plugin for [cmux](https://github.com/manaflow-ai/cmux) workspace management.
 
-## Requirements
+Turns a Stream Deck into a physical dashboard for cmux: switch workspaces with a tap instead of alt-tabbing or keyboard shortcuts, and see at a glance which workspace is selected and which ones have pending Claude notifications.
 
-- Stream Deck app ≥ 6.4
-- macOS ≥ 12.0
-- Node.js 20 (bundled by Stream Deck)
-- cmux with **Automation mode** socket access
-
-  In cmux: Settings → Socket → set to **Automation** (not `cmuxOnly`, since the plugin process is not a cmux descendant).
-
-## Setup
-
-```sh
-npm install
-npm run setup   # generates PNG images
-npm run build   # compiles TypeScript → bin/plugin.js
-```
-
-Then double-click `com.cmux.streamdeck.sdPlugin` to install.
+<img src="screenshot.jpeg">
 
 ## Usage
 
@@ -40,7 +25,27 @@ Pressing the button selects that workspace in cmux.
 Add a **New Workspace (ccq)** action to a button. Pressing it:
 1. Creates a new cmux workspace
 2. Selects it
-3. Sends `ccq` to the terminal (starts a new Claude Code session)
+3. Creates a temp directory, cds into it, and starts `claude --dangerously-skip-permissions`
+
+## Requirements
+
+- Stream Deck app ≥ 6.4
+- macOS ≥ 12.0
+- Node.js 20 (bundled by Stream Deck)
+- cmux with **Automation mode** socket access
+
+In cmux: Settings → Socket → set to **Automation** (not `cmuxOnly`, since the plugin process is not a cmux descendant).
+
+## Setup
+
+```sh
+npm install
+npm run setup   # generates PNG images
+npm run build   # compiles TypeScript → bin/plugin.js
+```
+
+Then double-click `com.cmux.streamdeck.sdPlugin` to install.
+
 
 ## Development
 

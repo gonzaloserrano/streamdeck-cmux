@@ -46,7 +46,7 @@ export class NewWorkspaceCcq extends SingletonAction {
 
       await delay(DELAY_MS);
 
-      await this.client.send("send ccq\\n");
+      await this.client.send("send cd $(mktemp -d) && claude --dangerously-skip-permissions\\n");
     } catch (err) {
       streamDeck.logger.error("new-workspace-ccq failed:", err);
     }
