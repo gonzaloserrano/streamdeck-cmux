@@ -1,0 +1,42 @@
+{
+  "Name": "cmux",
+  "Version": "1.0.0.0",
+  "Author": "manaflow-ai",
+  "Description": "Control cmux workspaces from Stream Deck",
+  "Category": "cmux",
+  "CategoryIcon": "imgs/action-workspace",
+  "Icon": "imgs/action-workspace",
+  "SDKVersion": 2,
+  "Software": { "MinimumVersion": "6.4" },
+  "OS": [{ "Platform": "mac", "MinimumVersion": "12.0" }],
+  "Nodejs": { "Version": "20" },
+  "CodePath": "bin/plugin.js",
+  "UUID": "com.cmux.streamdeck",
+  "Actions": [
+    {
+      "UUID": "com.cmux.streamdeck.workspace",
+      "Name": "Workspace",
+      "Tooltip": "Shows a cmux workspace. Set the index (0–13) in the Property Inspector.",
+      "Icon": "imgs/action-workspace",
+      "Controllers": ["Keypad"],
+      "SupportedInMultiActions": false,
+      "States": [
+        { "Image": "imgs/state-normal",  "Name": "Normal",      "FontSize": "10", "TitleAlignment": "middle" },
+        { "Image": "imgs/state-active",  "Name": "Selected",    "FontSize": "10", "TitleAlignment": "middle" },
+        { "Image": "imgs/state-input",   "Name": "Needs Input", "FontSize": "10", "TitleAlignment": "middle" },
+        { "Image": "imgs/state-empty",   "Name": "Empty",       "FontSize": "10", "TitleAlignment": "middle" }
+      ]
+    },
+    {
+      "UUID": "com.cmux.streamdeck.new-workspace-ccq",
+      "Name": "New Workspace (ccq)",
+      "Tooltip": "Creates a new cmux workspace and runs ccq in it.",
+      "Icon": "imgs/action-new-workspace",
+      "Controllers": ["Keypad"],
+      "SupportedInMultiActions": false,
+      "States": [
+        { "Image": "imgs/state-normal", "Name": "Normal" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "streamdeck-cmux",
+  "version": "1.0.0",
+  "description": "Stream Deck plugin for cmux workspace management",
+  "main": "com.cmux.streamdeck.sdPlugin/bin/plugin.js",
+  "scripts": {
+    "build": "tsc --outDir com.cmux.streamdeck.sdPlugin/bin",
+    "watch": "tsc --watch --outDir com.cmux.streamdeck.sdPlugin/bin",
+    "setup": "node scripts/gen-images.js"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.0.2"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
