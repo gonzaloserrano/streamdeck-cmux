@@ -13,10 +13,10 @@ Turns a Stream Deck into a physical dashboard for cmux: switch workspaces with a
 Add a **Workspace** action to each Stream Deck key. In the Property Inspector, set the **Workspace Index** (0–13) to map that button to the corresponding cmux workspace.
 
 Button states:
-- Dark gray — normal (workspace exists, not selected)
-- Blue — currently selected workspace
-- Orange — workspace has an unread Claude notification ("needs input")
-- Near-invisible — no workspace at this index
+- **Workspace color** — each workspace's background reflects its assigned color (set via cmux); defaults to dark gray if no color is set
+- **White border ring** — currently selected workspace
+- **Orange dot** (top-right corner) — workspace has an unread Claude notification ("needs input")
+- Black — no workspace at this index
 
 Pressing the button selects that workspace in cmux.
 
