@@ -96,14 +96,12 @@ export class WorkspaceButton extends SingletonAction<Settings> {
       return;
     }
 
-    let bg = ws.color ?? "#2C2C2E";
-    if (ws.hasUnread) bg = "#FF9F0A";
-    else if (ws.isSelected) bg = "#0A84FF";
+    const bg = ws.color ?? "#2C2C2E";
 
     const clean = ws.title.replace(/^[✳*]\s*/, "").trim();
     const wrapped = wrapTitle(clean);
-    debugLog(`button ${idx}: "${clean}" bg=${bg} unread=${ws.hasUnread}`);
-    void act.setImage(colorSvg(bg));
+    debugLog(`button ${idx}: "${clean}" bg=${bg} selected=${ws.isSelected} unread=${ws.hasUnread}`);
+    void act.setImage(colorSvg(bg, { selected: ws.isSelected, unread: ws.hasUnread }));
     void act.setTitle(wrapped);
   }
 }
@@ -118,8 +116,15 @@ function findByIndex(
   return undefined;
 }
 
-function colorSvg(hex: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144"><rect width="144" height="144" fill="${hex}"/></svg>`;
+function colorSvg(hex: string, opts?: { selected?: boolean; unread?: boolean }): string {
+  let overlay = "";
+  if (opts?.selected) {
+    overlay = `<rect x="4" y="4" width="136" height="136" rx="8" fill="none" stroke="#FFFFFF" stroke-width="8"/>`;
+  }
+  if (opts?.unread) {
+    overlay += `<circle cx="124" cy="20" r="14" fill="#FF9F0A"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144"><rect width="144" height="144" fill="${hex}"/>${overlay}</svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
