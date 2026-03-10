@@ -37,6 +37,17 @@
       "States": [
         { "Image": "imgs/state-normal", "Name": "Normal" }
       ]
+    },
+    {
+      "UUID": "com.cmux.streamdeck.socket-toggle",
+      "Name": "Nightly Toggle",
+      "Tooltip": "Toggle between cmux stable and nightly sockets.",
+      "Icon": "imgs/action-workspace",
+      "Controllers": ["Keypad"],
+      "SupportedInMultiActions": false,
+      "States": [
+        { "Image": "imgs/state-normal", "Name": "Normal" }
+      ]
     }
   ]
 }

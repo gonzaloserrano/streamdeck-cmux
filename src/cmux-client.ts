@@ -1,7 +1,14 @@
 import * as net from "net";
+import * as fs from "fs";
 
-const SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? "/tmp/cmux.sock";
+export const SOCKET_PATHS = ["/tmp/cmux.sock", "/tmp/cmux-nightly.sock"];
+const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? SOCKET_PATHS[0];
 const RECONNECT_DELAY_MS = 2000;
+
+const LOG_PATH = "/tmp/streamdeck-cmux-debug.log";
+function debugLog(msg: string): void {
+  try { fs.appendFileSync(LOG_PATH, `${new Date().toISOString()} [client] ${msg}\n`); } catch {}
+}
 
 // After seeing the first newline in a response, wait this long for more data
 // before resolving. Matches cmux.py's select(timeout=0.1) heuristic for
@@ -22,25 +29,60 @@ export class CmuxClient {
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
   private connected = false;
   private destroyed = false;
+  private socketPath: string;
+  private generation = 0;
 
-  constructor() {
+  constructor(socketPath?: string) {
+    this.socketPath = socketPath ?? DEFAULT_SOCKET_PATH;
+    this.connect();
+  }
+
+  getSocketPath(): string {
+    return this.socketPath;
+  }
+
+  reconnect(socketPath: string): void {
+    debugLog(`reconnect: switching to ${socketPath}`);
+    this.generation++;
+    this.socketPath = socketPath;
+    this.connected = false;
+    this.destroyed = false;
+    this.cancelSettle();
+    if (this.inflight) {
+      this.inflight.reject(new Error("reconnecting"));
+      this.inflight = null;
+    }
+    for (const item of this.queue) {
+      item.reject(new Error("reconnecting"));
+    }
+    this.queue = [];
+    this.buffer = "";
+    if (this.socket) {
+      this.socket.removeAllListeners();
+      this.socket.destroy();
+      this.socket = null;
+    }
     this.connect();
   }
 
   private connect(): void {
     if (this.destroyed) return;
 
-    const sock = net.createConnection(SOCKET_PATH);
+    const gen = this.generation;
+    debugLog(`connect: ${this.socketPath} (gen=${gen})`);
+    const sock = net.createConnection(this.socketPath);
     this.socket = sock;
     sock.setEncoding("utf8");
 
     sock.on("connect", () => {
+      if (gen !== this.generation) return;
+      debugLog(`connected to ${this.socketPath} (gen=${gen})`);
       this.connected = true;
       this.drain();
     });
 
     sock.on("data", (chunk: string) => {
-      if (!this.inflight) return;
+      if (gen !== this.generation || !this.inflight) return;
       this.buffer += chunk;
 
       // Reset the settle timer on every new chunk. When no more data arrives
@@ -52,6 +94,11 @@ export class CmuxClient {
     });
 
     sock.on("close", () => {
+      if (gen !== this.generation) {
+        debugLog(`stale socket closed (gen=${gen}, current=${this.generation}), ignoring`);
+        return;
+      }
+      debugLog(`socket closed (gen=${gen})`);
       this.connected = false;
       this.socket = null;
       this.cancelSettle();
@@ -64,8 +111,7 @@ export class CmuxClient {
     });
 
     sock.on("error", (err) => {
-      // "close" follows; just log
-      console.error("[cmux-client] error:", err.message);
+      debugLog(`socket error: ${err.message} (gen=${gen})`);
     });
   }
 
