@@ -23,6 +23,7 @@ export class Poller {
   private listeners = new Set<PollerListener>();
   private timer: ReturnType<typeof setInterval> | null = null;
   private lastState: Map<string, WorkspaceState> = new Map();
+  private generation = 0;
 
   constructor(private client: CmuxClient) {}
 
@@ -52,19 +53,39 @@ export class Poller {
     this.listeners.delete(fn);
   }
 
+  reset(): void {
+    this.generation++;
+    this.stop();
+    this.lastState = new Map();
+    this.start();
+  }
+
   private async poll(): Promise<void> {
+    const gen = this.generation;
     try {
       debugLog("polling...");
       const wsRaw = await this.client.send("list_workspaces");
+      if (gen !== this.generation) return;
       debugLog(`list_workspaces: ${JSON.stringify(wsRaw).slice(0, 200)}`);
       const notifRaw = await this.client.send("list_notifications");
+      if (gen !== this.generation) return;
       debugLog(`list_notifications: ${JSON.stringify(notifRaw).slice(0, 200)}`);
 
-      const colorsRaw = await this.client.send("list_workspace_colors");
-      const colors = parseWorkspaceColors(colorsRaw);
       const unreadIds = parseNeedsInputWorkspaceIds(notifRaw);
       debugLog(`needsInput: ${JSON.stringify([...unreadIds])}`);
-      const workspaces = parseWorkspaces(wsRaw, unreadIds, colors);
+      const workspaces = parseWorkspaces(wsRaw, unreadIds);
+
+      // Fetch color per workspace via sidebar_state
+      for (const ws of workspaces.values()) {
+        if (gen !== this.generation) return;
+        try {
+          const state = await this.client.send(`sidebar_state --tab=${ws.id}`);
+          if (gen !== this.generation) return;
+          const m = state.match(/^color=(.+)$/m);
+          if (m && m[1] !== "none") ws.color = m[1];
+        } catch {}
+      }
+
       debugLog(`parsed ${workspaces.size} workspaces`);
 
       this.lastState = workspaces;
@@ -85,7 +106,6 @@ export class Poller {
 function parseWorkspaces(
   raw: string,
   unreadIds: Set<string>,
-  colors: Map<string, string>
 ): Map<string, WorkspaceState> {
   const result = new Map<string, WorkspaceState>();
   if (raw === "No workspaces") return result;
@@ -106,22 +126,10 @@ function parseWorkspaces(
       index,
       id,
       title: title.trim(),
-      color: colors.get(id) ?? null,
+      color: null,
       isSelected,
       hasUnread: unreadIds.has(id),
     });
-  }
-  return result;
-}
-
-function parseWorkspaceColors(raw: string): Map<string, string> {
-  const result = new Map<string, string>();
-  if (raw === "No colors") return result;
-  for (const line of raw.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const m = trimmed.match(/^(\S+)\s+(#\S+)/);
-    if (m) result.set(m[1], m[2]);
   }
   return result;
 }
