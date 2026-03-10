@@ -48,8 +48,9 @@ export class SocketToggle extends SingletonAction {
   }
 
   private updateButton(ev: WillAppearEvent | KeyDownEvent): void {
-    const path = this.client.getSocketPath();
-    void ev.action.setTitle(labelFor(path));
-    void ev.action.setImage(bgFor(path));
+    const current = this.client.getSocketPath();
+    const next = SOCKET_PATHS.find((p) => p !== current) ?? SOCKET_PATHS[0];
+    void ev.action.setTitle(labelFor(next));
+    void ev.action.setImage(bgFor(next));
   }
 }
