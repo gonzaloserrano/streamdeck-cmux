@@ -13,6 +13,7 @@ export interface WorkspaceState {
   color: string | null;
   isSelected: boolean;
   hasUnread: boolean;
+  isRunning: boolean;
 }
 
 export type PollerListener = (workspaces: Map<string, WorkspaceState>) => void;
@@ -67,13 +68,7 @@ export class Poller {
       const wsRaw = await this.client.send("list_workspaces");
       if (gen !== this.generation) return;
       debugLog(`list_workspaces: ${JSON.stringify(wsRaw).slice(0, 200)}`);
-      const notifRaw = await this.client.send("list_notifications");
-      if (gen !== this.generation) return;
-      debugLog(`list_notifications: ${JSON.stringify(notifRaw).slice(0, 200)}`);
-
-      const unreadIds = parseNeedsInputWorkspaceIds(notifRaw);
-      debugLog(`needsInput: ${JSON.stringify([...unreadIds])}`);
-      const workspaces = parseWorkspaces(wsRaw, unreadIds);
+      const workspaces = parseWorkspaces(wsRaw);
 
       // Fetch color per workspace via sidebar_state
       for (const ws of workspaces.values()) {
@@ -103,10 +98,7 @@ export class Poller {
  *   * 0: <uuid> <title>
  *     1: <uuid> <title>
  */
-function parseWorkspaces(
-  raw: string,
-  unreadIds: Set<string>,
-): Map<string, WorkspaceState> {
+function parseWorkspaces(raw: string): Map<string, WorkspaceState> {
   const result = new Map<string, WorkspaceState>();
   if (raw === "No workspaces") return result;
 
@@ -121,45 +113,17 @@ function parseWorkspaces(
 
     const [, idxStr, id, title] = m;
     const index = parseInt(idxStr, 10);
+    const trimmedTitle = title.trim();
 
     result.set(id, {
       index,
       id,
-      title: title.trim(),
+      title: trimmedTitle,
       color: null,
       isSelected,
-      hasUnread: unreadIds.has(id),
+      hasUnread: trimmedTitle.startsWith("✳"),
+      isRunning: trimmedTitle.startsWith("⠂"),
     });
   }
   return result;
-}
-
-/**
- * Parses `list_notifications` output; returns workspace UUIDs that need input.
- *
- * Format: `<n>:<notif_uuid>|<workspace_uuid>|<surface_uuid_or_none>|read_status|title|sub|body`
- *
- * A workspace needs input if it has an unread notification OR its latest
- * notification body indicates Claude is waiting ("Claude is waiting for your input").
- */
-function parseNeedsInputWorkspaceIds(raw: string): Set<string> {
-  const ids = new Set<string>();
-  if (raw === "No notifications") return ids;
-
-  for (const line of raw.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const content = trimmed.replace(/^\d+:/, "");
-    const parts = content.split("|");
-    if (parts.length < 4) continue;
-
-    const isUnread = parts[3] === "unread";
-    const body = parts.length >= 7 ? parts[6] : "";
-    const needsInput = isUnread || body === "Claude is waiting for your input";
-
-    if (needsInput) {
-      ids.add(parts[1]);
-    }
-  }
-  return ids;
 }

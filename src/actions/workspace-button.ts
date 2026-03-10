@@ -100,8 +100,8 @@ export class WorkspaceButton extends SingletonAction<Settings> {
 
     const clean = ws.title.replace(/^[✳*]\s*/, "").trim();
     const wrapped = wrapTitle(clean);
-    debugLog(`button ${idx}: "${clean}" bg=${bg} selected=${ws.isSelected} unread=${ws.hasUnread}`);
-    void act.setImage(colorSvg(bg, { selected: ws.isSelected, unread: ws.hasUnread }));
+    debugLog(`button ${idx}: "${clean}" bg=${bg} selected=${ws.isSelected} unread=${ws.hasUnread} running=${ws.isRunning}`);
+    void act.setImage(colorSvg(bg, { selected: ws.isSelected, unread: ws.hasUnread, running: ws.isRunning }));
     void act.setTitle(wrapped);
   }
 }
@@ -116,13 +116,15 @@ function findByIndex(
   return undefined;
 }
 
-function colorSvg(hex: string, opts?: { selected?: boolean; unread?: boolean }): string {
+function colorSvg(hex: string, opts?: { selected?: boolean; unread?: boolean; running?: boolean }): string {
   let overlay = "";
   if (opts?.selected) {
     overlay = `<rect x="4" y="4" width="136" height="136" rx="8" fill="none" stroke="#FFFFFF" stroke-width="8"/>`;
   }
   if (opts?.unread) {
-    overlay += `<circle cx="124" cy="20" r="14" fill="#FF9F0A"/>`;
+    overlay += `<circle cx="122" cy="22" r="18" fill="#FF9F0A"/>`;
+  } else if (opts?.running) {
+    overlay += `<circle cx="122" cy="22" r="18" fill="#0A84FF"/>`;
   }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144"><rect width="144" height="144" fill="${hex}"/>${overlay}</svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
