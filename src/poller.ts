@@ -11,6 +11,8 @@ export interface WorkspaceState {
   id: string;
   title: string;
   color: string | null;
+  cwd: string | null;
+  progress: number | null;
   isSelected: boolean;
   hasUnread: boolean;
   isRunning: boolean;
@@ -18,7 +20,7 @@ export interface WorkspaceState {
 
 export type PollerListener = (workspaces: Map<string, WorkspaceState>) => void;
 
-const POLL_INTERVAL_MS = 500;
+const POLL_INTERVAL_MS = 2000;
 
 export class Poller {
   private listeners = new Set<PollerListener>();
@@ -54,6 +56,10 @@ export class Poller {
     this.listeners.delete(fn);
   }
 
+  forcePoll(): void {
+    void this.poll();
+  }
+
   reset(): void {
     this.generation++;
     this.stop();
@@ -70,14 +76,25 @@ export class Poller {
       debugLog(`list_workspaces: ${JSON.stringify(wsRaw).slice(0, 200)}`);
       const workspaces = parseWorkspaces(wsRaw);
 
-      // Fetch color per workspace via sidebar_state
+      // Fetch color, cwd, progress per workspace via sidebar_state
       for (const ws of workspaces.values()) {
         if (gen !== this.generation) return;
         try {
           const state = await this.client.send(`sidebar_state --tab=${ws.id}`);
           if (gen !== this.generation) return;
-          const m = state.match(/^color=(.+)$/m);
-          if (m && m[1] !== "none") ws.color = m[1];
+          const colorMatch = state.match(/^color=(.+)$/m);
+          if (colorMatch && colorMatch[1] !== "none") ws.color = colorMatch[1];
+          const cwdMatch = state.match(/^cwd=(.+)$/m);
+          if (cwdMatch && cwdMatch[1] !== "none") {
+            const parts = cwdMatch[1].split("/");
+            ws.cwd = parts[parts.length - 1] || null;
+          }
+          const progressMatch = state.match(/^progress=(.+)$/m);
+          if (progressMatch && progressMatch[1] !== "none") {
+            const val = parseFloat(progressMatch[1]);
+            if (!isNaN(val)) ws.progress = val;
+          }
+          debugLog(`sidebar_state ${ws.id}: color=${ws.color} cwd=${ws.cwd} progress=${ws.progress}`);
         } catch {}
       }
 
@@ -120,6 +137,8 @@ function parseWorkspaces(raw: string): Map<string, WorkspaceState> {
       id,
       title: trimmedTitle,
       color: null,
+      cwd: null,
+      progress: null,
       isSelected,
       hasUnread: trimmedTitle.startsWith("✳"),
       isRunning: trimmedTitle.startsWith("⠂"),
