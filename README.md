@@ -4,28 +4,29 @@ Stream Deck plugin for [cmux](https://github.com/manaflow-ai/cmux) workspace man
 
 Turns a Stream Deck into a physical dashboard for cmux: switch workspaces with a tap instead of alt-tabbing or keyboard shortcuts, and see at a glance which workspace is selected and which ones have pending Claude notifications.
 
-<img src="screenshot.jpeg">
+<img src="screenshot-02.jpeg" width="67%">
 
 ## Usage
 
 ### Workspace button
 
-Add a **Workspace** action to each Stream Deck key. In the Property Inspector, set the **Workspace Index** (0–13) to map that button to the corresponding cmux workspace.
+Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux workspaces by position (sorted left-to-right, top-to-bottom).
 
-Button states:
-- Dark gray — normal (workspace exists, not selected)
-- Blue — currently selected workspace
-- Orange — workspace has an unread Claude notification ("needs input")
-- Near-invisible — no workspace at this index
+Each button uses the workspace's color (from cmux sidebar) as background, with overlays:
+- **White border** — currently selected workspace
+- **Orange dot** (top-right) — workspace needs input
+- **Blue dot** (top-right) — Claude is running
+- **Black** — no workspace at this position
 
-Pressing the button selects that workspace in cmux.
+Pressing a button selects that workspace in cmux and brings cmux to the front.
+
+### Nightly Toggle
+
+Toggles between stable (`/tmp/cmux.sock`) and nightly (`/tmp/cmux-nightly.sock`) sockets. Shows the target socket name; blue background for stable, purple for nightly.
 
 ### New Workspace (ccq)
 
-Add a **New Workspace (ccq)** action to a button. Pressing it:
-1. Creates a new cmux workspace
-2. Selects it
-3. Creates a temp directory, cds into it, and starts `claude --dangerously-skip-permissions`
+Creates a new cmux workspace, selects it, and starts `claude --dangerously-skip-permissions` in a temp directory.
 
 ## Requirements
 
@@ -53,4 +54,4 @@ Then double-click `com.cmux.streamdeck.sdPlugin` to install.
 npm run watch   # rebuild on file change
 ```
 
-Socket path defaults to `/tmp/cmux.sock`. Override with `CMUX_SOCKET_PATH` env var.
+Default socket path is `/tmp/cmux.sock` (override with `CMUX_SOCKET_PATH`). Use the **Nightly Toggle** button to switch between stable and nightly at runtime.
