@@ -62,7 +62,8 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     try {
       await this.client.send(`select_workspace ${ws.id}`);
       this.poller.forcePoll();
-      execFile("osascript", ["-e", 'tell application "cmux" to activate']);
+      const appName = this.client.getSocketPath().includes("nightly") ? "cmux NIGHTLY" : "cmux";
+      execFile("osascript", ["-e", `tell application "${appName}" to activate`]);
     } catch (err) {
       streamDeck.logger.error("select_workspace failed:", err);
     }
