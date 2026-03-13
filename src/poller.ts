@@ -20,7 +20,7 @@ export interface WorkspaceState {
 
 export type PollerListener = (workspaces: Map<string, WorkspaceState>) => void;
 
-const POLL_INTERVAL_MS = 2000;
+const POLL_INTERVAL_MS = 1000;
 
 export class Poller {
   private listeners = new Set<PollerListener>();
@@ -94,7 +94,13 @@ export class Poller {
             const val = parseFloat(progressMatch[1]);
             if (!isNaN(val)) ws.progress = val;
           }
-          debugLog(`sidebar_state ${ws.id}: color=${ws.color} cwd=${ws.cwd} progress=${ws.progress}`);
+          const statusMatch = state.match(/^\s+claude_code=(.+?)(?:\s+icon=|\s*$)/m);
+          if (statusMatch) {
+            const ccStatus = statusMatch[1].trim();
+            if (ccStatus === "Needs input") ws.hasUnread = true;
+            else if (ccStatus === "Running") ws.isRunning = true;
+          }
+          debugLog(`sidebar_state ${ws.id}: color=${ws.color} cwd=${ws.cwd} progress=${ws.progress} hasUnread=${ws.hasUnread} isRunning=${ws.isRunning}`);
         } catch {}
       }
 

@@ -59,10 +59,11 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     if (idx < 0) return;
     const ws = findByIndex(this.poller.getLastState(), idx);
     if (!ws) return;
+    const appName = this.client.getSocketPath().includes("nightly") ? "cmux NIGHTLY" : "cmux";
+    execFile("osascript", ["-e", `tell application "${appName}" to activate`]);
     try {
       await this.client.send(`select_workspace ${ws.id}`);
       this.poller.forcePoll();
-      execFile("osascript", ["-e", 'tell application "cmux" to activate']);
     } catch (err) {
       streamDeck.logger.error("select_workspace failed:", err);
     }
@@ -151,9 +152,9 @@ interface SvgOpts {
 function colorSvg(hex: string, opts?: SvgOpts): string {
   let overlay = "";
   if (opts?.unread) {
-    overlay += `<rect x="0" y="0" width="144" height="8" rx="4" fill="#FF9F0A"/>`;
+    overlay += `<rect x="0" y="0" width="144" height="12" rx="4" fill="#FF9F0A"/>`;
   } else if (opts?.running) {
-    overlay += `<rect x="0" y="0" width="144" height="8" rx="4" fill="#0A84FF" opacity="0.5"/>`;
+    overlay += `<rect x="0" y="0" width="144" height="12" rx="4" fill="#FF6B9D"/>`;
   }
   if (opts?.progress != null) {
     overlay += `<rect x="4" y="134" width="${opts.progress * 136}" height="6" rx="3" fill="#FFFFFF" opacity="0.6"/>`;
