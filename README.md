@@ -18,6 +18,7 @@ Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux worksp
 - **Pink bar** (top) — Claude is running
 - **Progress bar** (bottom) — shows workspace progress
 - **Working directory** — shown in cyan at the bottom
+- **Claude Code logo** — shown instead of title for "Claude Code" workspaces
 - **Dynamic font sizing** — title text scales to fit
 - **Black** — no workspace at this position
 
