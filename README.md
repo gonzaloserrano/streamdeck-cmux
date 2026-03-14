@@ -10,15 +10,17 @@ While Claude is working across your cmux workspaces, you're often in a browser r
 
 ### Workspace button
 
-Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux workspaces by position (sorted left-to-right, top-to-bottom).
+Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux workspaces by position (sorted left-to-right, top-to-bottom). Pressing a button selects that workspace and brings cmux to the front.
 
-Each button uses the workspace's color (from cmux sidebar) as background, with overlays:
-- **White border** — currently selected workspace
-- **Orange dot** (top-right) — workspace needs input
-- **Blue dot** (top-right) — Claude is running
+- Background color matches the workspace's cmux sidebar color
+- **Lighter background** — currently selected workspace
+- **Orange bar** (top) — workspace needs input
+- **Pink bar** (top) — Claude is running
+- **Progress bar** (bottom) — shows workspace progress
+- **Working directory** — shown in cyan at the bottom
+- **Claude Code logo** — shown instead of title for "Claude Code" workspaces
+- **Dynamic font sizing** — title text scales to fit
 - **Black** — no workspace at this position
-
-Pressing a button selects that workspace in cmux and brings cmux to the front.
 
 ### Nightly Toggle
 
@@ -26,7 +28,7 @@ Toggles between stable (`/tmp/cmux.sock`) and nightly (`/tmp/cmux-nightly.sock`)
 
 ### New Workspace (ccq)
 
-Creates a new cmux workspace, selects it, and starts `claude --dangerously-skip-permissions` in a temp directory.
+Creates a new cmux workspace, selects it, and starts `claude --dangerously-skip-permissions` in a temp directory. Each new workspace gets a color from a rotating 16-color palette.
 
 ## Requirements
 
