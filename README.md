@@ -14,8 +14,8 @@ Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux worksp
 
 - Background color matches the workspace's cmux sidebar color
 - **White border** — currently selected workspace
-- **Orange dot** (top-right) — workspace needs input
-- **Pink dot** (top-right) — Claude is running
+- **Orange bar** (top) — workspace needs input
+- **Pink bar** (top) — Claude is running
 - **Progress bar** (bottom) — shows workspace progress
 - **Working directory** — shown in cyan at the bottom
 - **Dynamic font sizing** — title text scales to fit
