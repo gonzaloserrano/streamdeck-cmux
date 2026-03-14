@@ -2,7 +2,7 @@
 
 Stream Deck plugin for [cmux](https://github.com/manaflow-ai/cmux) workspace management.
 
-Turns a Stream Deck into a physical dashboard for cmux: switch workspaces with a tap instead of alt-tabbing or keyboard shortcuts, and see at a glance which workspace is selected and which ones have pending Claude notifications.
+While Claude is working across your cmux workspaces, you're often in a browser reviewing PRs or reading docs. Your Stream Deck shows workspace status and pending notifications, and lets you switch with a single tap — no ⌘-Tab required.
 
 <img src="screenshot-03.jpeg" width="67%">
 
