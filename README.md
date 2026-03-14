@@ -13,7 +13,7 @@ While Claude is working across your cmux workspaces, you're often in a browser r
 Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux workspaces by position (sorted left-to-right, top-to-bottom). Pressing a button selects that workspace and brings cmux to the front.
 
 - Background color matches the workspace's cmux sidebar color
-- **White border** — currently selected workspace
+- **Lighter background** — currently selected workspace
 - **Orange bar** (top) — workspace needs input
 - **Pink bar** (top) — Claude is running
 - **Progress bar** (bottom) — shows workspace progress
