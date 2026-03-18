@@ -59,12 +59,15 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     if (idx < 0) return;
     const ws = findByIndex(this.poller.getLastState(), idx);
     if (!ws) return;
+    debugLog(`keyDown: idx=${idx} ws=${ws.id} title="${ws.title}"`);
     const appName = this.client.getSocketPath().includes("nightly") ? "cmux NIGHTLY" : "cmux";
     execFile("osascript", ["-e", `tell application "${appName}" to activate`]);
     try {
-      await this.client.send(`select_workspace ${ws.id}`);
+      const result = await this.client.send(`select_workspace ${ws.id}`);
+      debugLog(`select_workspace result: ${result}`);
       this.poller.forcePoll();
     } catch (err) {
+      debugLog(`select_workspace error: ${err}`);
       streamDeck.logger.error("select_workspace failed:", err);
     }
   }
