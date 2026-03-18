@@ -48,6 +48,17 @@
       "States": [
         { "Image": "imgs/state-normal", "Name": "Normal" }
       ]
+    },
+    {
+      "UUID": "com.cmux.streamdeck.restart",
+      "Name": "Restart Stream Deck",
+      "Tooltip": "Restart the Stream Deck app to reload the plugin.",
+      "Icon": "imgs/action-restart",
+      "Controllers": ["Keypad"],
+      "SupportedInMultiActions": false,
+      "States": [
+        { "Image": "imgs/state-restart", "Name": "Normal" }
+      ]
     }
   ]
 }
