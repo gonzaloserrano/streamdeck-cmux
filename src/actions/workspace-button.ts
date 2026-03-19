@@ -247,9 +247,7 @@ function escapeXml(s: string): string {
 function splitTitle(title: string): string[] {
   const maxChars = 12;
   const maxLines = 3;
-  const words = title
-    .split(/[-\s]+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
+  const words = title.split(/[-\s]+/);
 
   const lines: string[] = [];
   let current = "";
