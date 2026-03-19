@@ -155,9 +155,9 @@ interface SvgOpts {
 function colorSvg(hex: string, opts?: SvgOpts): string {
   let overlay = "";
   if (opts?.unread) {
-    overlay += `<rect x="0" y="0" width="144" height="12" rx="4" fill="#FF9F0A"/>`;
+    overlay += `<rect x="0" y="0" width="144" height="9" rx="4" fill="#FF9F0A"/>`;
   } else if (opts?.running) {
-    overlay += `<rect x="0" y="0" width="144" height="12" rx="4" fill="#FF6B9D"/>`;
+    overlay += `<rect x="0" y="0" width="144" height="9" rx="4" fill="#FF6B9D"/>`;
   }
   if (opts?.progress != null) {
     overlay += `<rect x="4" y="134" width="${opts.progress * 136}" height="6" rx="3" fill="#FFFFFF" opacity="0.6"/>`;
@@ -172,49 +172,61 @@ function colorSvg(hex: string, opts?: SvgOpts): string {
     overlay += `<image x="${logoX}" y="${logoY}" width="${logoW}" height="${logoH}" href="data:image/png;base64,${opts.logo}"/>`;
   }
 
-  // Title text (white, dynamic font size)
-  if (opts?.titleLines?.length) {
-    const cwdLines = opts.cwd ? splitCwd(opts.cwd) : [];
-    const maxTitleChars = 7;
-    const baseTitleFont = 26;
-    const minTitleFont = 14;
-    const longestTitle = Math.max(...opts.titleLines.map((l) => l.length));
-    const fontSize = Math.max(minTitleFont, Math.min(baseTitleFont, Math.floor(baseTitleFont * maxTitleChars / longestTitle)));
-    const lineHeight = fontSize + 6;
-    const areaTop = 16;
-    let areaBottom = 134;
-    if (cwdLines.length > 0) {
-      const longest = Math.max(...cwdLines.map((l) => l.length));
-      const cwdFontSize = Math.max(14, Math.min(26, Math.floor(26 * 7 / longest)));
-      const cwdHeight = cwdLines.length * (cwdFontSize + 2);
-      areaBottom = 132 - cwdHeight - 4;
-    }
-    const totalHeight = opts.titleLines.length * lineHeight;
-    const startY = areaTop + (areaBottom - areaTop - totalHeight) / 2 + fontSize;
-    for (let i = 0; i < opts.titleLines.length; i++) {
-      const y = startY + i * lineHeight;
-      overlay += `<text x="72" y="${y}" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="${fontSize}" font-weight="600">${escapeXml(opts.titleLines[i])}</text>`;
+  // Compute title metrics (needed to decide CWD layout)
+  const areaTop = 12;
+  const titleLines = opts?.titleLines ?? [];
+  let titleFontSize = 0;
+  let titleLineHeight = 0;
+  let titleTotalHeight = 0;
+  if (titleLines.length) {
+    const longestTitle = Math.max(...titleLines.map((l) => l.length));
+    titleFontSize = Math.max(16, Math.min(26, Math.floor(26 * 10 / longestTitle)));
+    titleLineHeight = titleFontSize + 4;
+    titleTotalHeight = titleLines.length * titleLineHeight;
+  }
+  const contentTop = opts?.logo ? 60 : areaTop;
+  const availableForCwd = 132 - contentTop - titleTotalHeight - 6;
+
+  // CWD path (cyan, 1 or 2 lines depending on available space)
+  const cwdMaxFont = 24;
+  const cwdMinFont = 14;
+  let cwdHeight = 0;
+  if (opts?.cwd) {
+    const cwdParts = availableForCwd >= 50 ? splitCwdLines(opts.cwd) : [opts.cwd];
+    if (cwdParts.length === 2) {
+      const longestPart = Math.max(cwdParts[0].length, cwdParts[1].length);
+      const cwdFontSize = Math.max(cwdMinFont, Math.min(cwdMaxFont, Math.floor(cwdMaxFont * 11 / longestPart)));
+      const cwdLineHeight = cwdFontSize + 2;
+      cwdHeight = 2 * cwdLineHeight;
+      const y1 = 132 - cwdLineHeight;
+      overlay += `<text x="72" y="${y1}" text-anchor="middle" fill="#64D2FF" font-family="sans-serif" font-size="${cwdFontSize}">${escapeXml(cwdParts[0])}</text>`;
+      overlay += `<text x="72" y="132" text-anchor="middle" fill="#64D2FF" font-family="sans-serif" font-size="${cwdFontSize}">${escapeXml(cwdParts[1])}</text>`;
+    } else {
+      const cwdChars = opts.cwd.length;
+      const cwdFontSize = Math.max(cwdMinFont, Math.min(cwdMaxFont, Math.floor(cwdMaxFont * 11 / cwdChars)));
+      cwdHeight = cwdFontSize + 4;
+      overlay += `<text x="72" y="132" text-anchor="middle" fill="#64D2FF" font-family="sans-serif" font-size="${cwdFontSize}">${escapeXml(opts.cwd)}</text>`;
     }
   }
 
-  // CWD path (cyan, dynamic font size)
-  if (opts?.cwd) {
-    const cwdLines = splitCwd(opts.cwd);
-    const maxCharsAtBase = 7;
-    const baseFontSize = 26;
-    const minFontSize = 14;
-    const longest = Math.max(...cwdLines.map((l) => l.length));
-    const cwdFontSize = Math.max(minFontSize, Math.min(baseFontSize, Math.floor(baseFontSize * maxCharsAtBase / longest)));
-    const cwdLineHeight = cwdFontSize + 2;
-    const cwdStartY = 132 - (cwdLines.length - 1) * cwdLineHeight;
-    for (let i = 0; i < cwdLines.length; i++) {
-      const y = cwdStartY + i * cwdLineHeight;
-      overlay += `<text x="72" y="${y}" text-anchor="middle" fill="#64D2FF" font-family="sans-serif" font-size="${cwdFontSize}">${escapeXml(cwdLines[i])}</text>`;
+  // Title text (white, bold, dynamic font size)
+  if (titleLines.length) {
+    const areaBottom = cwdHeight > 0 ? 132 - cwdHeight - 2 : 134;
+    const startY = areaTop + (areaBottom - areaTop - titleTotalHeight) / 2 + titleFontSize;
+    for (let i = 0; i < titleLines.length; i++) {
+      const y = startY + i * titleLineHeight;
+      overlay += `<text x="72" y="${y}" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-size="${titleFontSize}" font-weight="700">${escapeXml(titleLines[i])}</text>`;
     }
   }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144"><rect width="144" height="144" fill="${hex}"/>${overlay}</svg>`;
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
+
+function splitCwdLines(cwd: string): string[] {
+  const idx = cwd.indexOf("-");
+  if (idx < 0 || idx === cwd.length - 1) return [cwd];
+  return [cwd.slice(0, idx + 1), cwd.slice(idx + 1)];
 }
 
 function lightenColor(hex: string, amount: number): string {
@@ -231,18 +243,10 @@ function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function splitCwd(cwd: string): string[] {
-  const parts = cwd.split("-");
-  if (parts.length <= 1) return [cwd];
-  const lines: string[] = [];
-  for (let i = 0; i < parts.length; i++) {
-    lines.push(i < parts.length - 1 ? parts[i] + "-" : parts[i]);
-  }
-  return lines;
-}
 
 function splitTitle(title: string): string[] {
-  const maxChars = 13;
+  const maxChars = 12;
+  const maxLines = 3;
   const words = title
     .split(/[-\s]+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1));
@@ -261,9 +265,11 @@ function splitTitle(title: string): string[] {
   }
   if (current) lines.push(current);
 
-  if (lines.length <= 2) return lines;
-  const remaining = lines.slice(1).join(" ");
-  return [lines[0], remaining.length <= maxChars ? remaining : remaining.slice(0, maxChars - 3) + "..."];
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines - 1);
+  const remaining = lines.slice(maxLines - 1).join(" ");
+  kept.push(remaining.length <= maxChars ? remaining : remaining.slice(0, maxChars - 3).trim() + "...");
+  return kept;
 }
 
 const LOG_PATH = "/tmp/streamdeck-cmux-debug.log";
