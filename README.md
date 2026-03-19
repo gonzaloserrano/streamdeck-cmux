@@ -2,7 +2,7 @@
 
 Stream Deck plugin for [cmux](https://github.com/manaflow-ai/cmux) workspace management.
 
-While Claude is working across your cmux workspaces, you're often in a browser reviewing PRs or reading docs. Your Stream Deck shows workspace status and pending notifications, and lets you switch with a single tap — no ⌘-Tab required.
+While Claude is working across your cmux workspaces, you're often in a browser reviewing PRs or reading docs. Your Stream Deck shows workspace status and pending notifications, and lets you switch with a single tap -- no ⌘-Tab required.
 
 <img src="screenshot-03.jpeg">
 
@@ -13,14 +13,14 @@ While Claude is working across your cmux workspaces, you're often in a browser r
 Add **Workspace** actions to Stream Deck keys. Buttons are mapped to cmux workspaces by position (sorted left-to-right, top-to-bottom). Pressing a button selects that workspace and brings cmux to the front.
 
 - Background color matches the workspace's cmux sidebar color
-- **Lighter background** — currently selected workspace
-- **Orange bar** (top) — workspace needs input
-- **Pink bar** (top) — Claude is running
-- **Progress bar** (bottom) — shows workspace progress
-- **Working directory** — shown in cyan at the bottom
-- **Claude Code logo** — shown instead of title for "Claude Code" workspaces
-- **Dynamic font sizing** — title text scales to fit
-- **Black** — no workspace at this position
+- **Lighter background** --currently selected workspace
+- **Orange bar** (top) --workspace needs input
+- **Pink bar** (top) --Claude is running
+- **Progress bar** (bottom) --shows workspace progress
+- **Working directory** --shown in cyan at the bottom
+- **Claude Code logo** -- shown instead of title for "Claude Code" workspaces; bounces left-to-right when running
+- **Dynamic font sizing** --title text scales to fit
+- **Black** --no workspace at this position
 
 ### Nightly Toggle
 
