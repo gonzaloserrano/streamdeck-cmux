@@ -102,7 +102,9 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     workspaces: Map<string, WorkspaceState>,
     displayTitles: Map<string, string>
   ): void {
-    const hasRunningClaude = [...workspaces.values()].some((ws) => {
+    const hasRunningClaude = this.sorted().some((_, i) => {
+      const ws = findByIndex(workspaces, i);
+      if (!ws) return false;
       const title = displayTitles.get(ws.id) ?? ws.title;
       return title === "Claude Code" && ws.isRunning;
     });
