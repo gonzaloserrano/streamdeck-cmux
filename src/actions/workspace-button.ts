@@ -29,6 +29,7 @@ interface ActionEntry {
 @action({ UUID: "com.cmux.streamdeck.workspace" })
 export class WorkspaceButton extends SingletonAction<Settings> {
   private activeActions = new Map<string, ActionEntry>();
+  private animTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private readonly client: CmuxClient,
@@ -88,11 +89,50 @@ export class WorkspaceButton extends SingletonAction<Settings> {
 
     const displayTitles = new Map<string, string>();
     for (const ws of workspaces.values()) {
-      displayTitles.set(ws.id, ws.title.replace(/^[✳⠂*]\s*/, "").trim());
+      displayTitles.set(ws.id, ws.title.replace(/^[\u2800-\u28FF✳*·•]\s*/, "").trim());
     }
 
     for (let i = 0; i < entries.length; i++) {
       this.updateButton(entries[i].action, i, workspaces, displayTitles);
+    }
+    this.manageAnimation(workspaces, displayTitles);
+  }
+
+  private manageAnimation(
+    workspaces: Map<string, WorkspaceState>,
+    displayTitles: Map<string, string>
+  ): void {
+    const hasRunningClaude = [...workspaces.values()].some((ws) => {
+      const title = displayTitles.get(ws.id) ?? ws.title;
+      return title === "Claude Code" && ws.isRunning;
+    });
+    if (hasRunningClaude && !this.animTimer) {
+      this.animTimer = setInterval(() => this.animateLogos(), 100);
+    } else if (!hasRunningClaude && this.animTimer) {
+      clearInterval(this.animTimer);
+      this.animTimer = null;
+    }
+  }
+
+  private animateLogos(): void {
+    const workspaces = this.poller.getLastState();
+    const entries = this.sorted();
+    for (let i = 0; i < entries.length; i++) {
+      const ws = findByIndex(workspaces, i);
+      if (!ws) continue;
+      const title = ws.title.replace(/^[\u2800-\u28FF✳*·•]\s*/, "").trim();
+      if (title !== "Claude Code" || !ws.isRunning) continue;
+      const baseColor = ws.color ?? "#2C2C2E";
+      const bg = ws.isSelected ? lightenColor(baseColor, 0.35) : baseColor;
+      void entries[i].action.setImage(colorSvg(bg, {
+        unread: ws.hasUnread,
+        running: ws.isRunning,
+        progress: ws.progress,
+        titleLines: [],
+        cwd: ws.cwd,
+        logo: CLAUDE_LOGO_B64,
+        animateLogo: true,
+      }));
     }
   }
 
@@ -150,6 +190,7 @@ interface SvgOpts {
   titleLines?: string[];
   cwd?: string | null;
   logo?: string;
+  animateLogo?: boolean;
 }
 
 function colorSvg(hex: string, opts?: SvgOpts): string {
@@ -167,8 +208,13 @@ function colorSvg(hex: string, opts?: SvgOpts): string {
   if (opts?.logo) {
     const logoW = 40;
     const logoH = 30;
-    const logoX = (144 - logoW) / 2;
     const logoY = 30;
+    let logoX = (144 - logoW) / 2;
+    if (opts.animateLogo) {
+      const t = (Date.now() % 2000) / 2000;
+      const wave = t < 0.5 ? t * 2 : 2 - t * 2;
+      logoX = 10 + wave * (144 - logoW - 20);
+    }
     overlay += `<image x="${logoX}" y="${logoY}" width="${logoW}" height="${logoH}" href="data:image/png;base64,${opts.logo}"/>`;
   }
 

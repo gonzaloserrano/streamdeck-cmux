@@ -4,7 +4,7 @@ Stream Deck plugin for [cmux](https://github.com/manaflow-ai/cmux) workspace man
 
 While Claude is working across your cmux workspaces, you're often in a browser reviewing PRs or reading docs. Your Stream Deck shows workspace status and pending notifications, and lets you switch with a single tap — no ⌘-Tab required.
 
-<img src="screenshot-03.jpeg">
+<img src="screenshot-anim.gif">
 
 ## Usage
 
