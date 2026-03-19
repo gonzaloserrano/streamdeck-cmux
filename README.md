@@ -39,21 +39,34 @@ Creates a new cmux workspace, selects it, and starts `claude --dangerously-skip-
 
 In cmux: Settings → Socket → set to **Automation** (not `cmuxOnly`, since the plugin process is not a cmux descendant).
 
-## Setup
+## Install
+
+Download the `.streamDeckPlugin` file from the [latest release](https://github.com/gonzaloserrano/streamdeck-cmux/releases/latest) and double-click to install.
+
+### From source
 
 ```sh
-npm install
-npm run setup   # generates PNG images
-npm run build   # compiles TypeScript → bin/plugin.js
+make install
 ```
 
-Then double-click `com.cmux.streamdeck.sdPlugin` to install.
+This runs `npm install`, builds TypeScript, generates images, copies the plugin to the Stream Deck plugins directory, and restarts Stream Deck.
 
+To create a distributable `.streamDeckPlugin` file (others can double-click to install):
+
+```sh
+make package
+```
+
+Run `make` to see all available targets.
 
 ## Development
 
+After making changes:
+
 ```sh
-npm run watch   # rebuild on file change
+make deploy
 ```
+
+This builds, copies files, and restarts the plugin process without restarting Stream Deck.
 
 Default socket path is `/tmp/cmux.sock` (override with `CMUX_SOCKET_PATH`). Use the **Nightly Toggle** button to switch between stable and nightly at runtime.
