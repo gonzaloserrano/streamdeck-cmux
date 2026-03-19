@@ -1,7 +1,7 @@
 PLUGIN_DIR := com.cmux.streamdeck.sdPlugin
 INSTALL_DIR := $(HOME)/Library/Application Support/com.elgato.StreamDeck/Plugins/$(PLUGIN_DIR)
 
-.PHONY: help deploy build setup install package
+.PHONY: help deploy build setup install package release
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -31,6 +31,14 @@ package: build ## Create .streamDeckPlugin (double-click to install)
 		zip -r com.cmux.streamdeck.streamDeckPlugin $(PLUGIN_DIR) -x "$(PLUGIN_DIR)/node_modules/.cache/*" && \
 		rm -rf $(PLUGIN_DIR)/node_modules
 	@echo "Created com.cmux.streamdeck.streamDeckPlugin"
+
+release: ## Bump patch version, tag, and push to trigger release
+	@latest=$$(git tag --sort=-v:refname | head -1); \
+	if [ -z "$$latest" ]; then next="v0.1.0"; \
+	else next=$$(echo "$$latest" | awk -F. '{printf "%s.%s.%d", $$1, $$2, $$3+1}'); \
+	fi; \
+	echo "$$latest -> $$next"; \
+	git tag "$$next" && git push origin "$$next"
 
 build: setup
 	npm run build

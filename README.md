@@ -41,6 +41,10 @@ In cmux: Settings → Socket → set to **Automation** (not `cmuxOnly`, since th
 
 ## Install
 
+Download the `.streamDeckPlugin` file from the [latest release](https://github.com/gonzaloserrano/streamdeck-cmux/releases/latest) and double-click to install.
+
+### From source
+
 ```sh
 make install
 ```
