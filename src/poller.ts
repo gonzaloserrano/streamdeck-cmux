@@ -60,10 +60,15 @@ export class Poller {
     void this.poll();
   }
 
-  reset(): void {
+  pause(): void {
     this.generation++;
     this.stop();
     this.lastState = new Map();
+    for (const fn of this.listeners) fn(this.lastState);
+  }
+
+  reset(): void {
+    this.pause();
     this.start();
   }
 

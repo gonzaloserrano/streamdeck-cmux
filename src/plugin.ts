@@ -29,6 +29,15 @@ streamDeck.actions.registerAction(new NewWorkspaceCcq(client));
 streamDeck.actions.registerAction(new SocketToggle(client, poller));
 streamDeck.actions.registerAction(new RestartStreamDeck());
 
+streamDeck.system.onSystemDidWakeUp(() => {
+  log("system woke up, pausing poller");
+  poller.pause();
+  setTimeout(() => {
+    log("resuming poller after wake");
+    poller.start();
+  }, 3000);
+});
+
 log("connecting to stream deck");
 streamDeck.connect();
 log("connect() called");
