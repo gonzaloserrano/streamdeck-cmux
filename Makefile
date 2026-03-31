@@ -1,7 +1,7 @@
 PLUGIN_DIR := com.cmux.streamdeck.sdPlugin
 INSTALL_DIR := $(HOME)/Library/Application Support/com.elgato.StreamDeck/Plugins/$(PLUGIN_DIR)
 
-.PHONY: help deploy build setup install package release
+.PHONY: help deploy build setup install package release reset
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -39,6 +39,11 @@ release: ## Bump patch version, tag, and push to trigger release
 	fi; \
 	echo "$$latest -> $$next"; \
 	git tag "$$next" && git push origin "$$next"
+
+reset: ## Kill and restart the Stream Deck app
+	pkill -x "Stream Deck" 2>/dev/null || true
+	sleep 2
+	open -a "Elgato Stream Deck"
 
 build: setup
 	npm run build
