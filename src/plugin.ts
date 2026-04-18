@@ -30,8 +30,9 @@ streamDeck.actions.registerAction(new SocketToggle(client, poller));
 streamDeck.actions.registerAction(new RestartStreamDeck());
 
 streamDeck.system.onSystemDidWakeUp(() => {
-  log("system woke up, pausing poller");
+  log("system woke up, reconnecting socket and pausing poller");
   poller.pause();
+  client.reconnect(client.getSocketPath());
   setTimeout(() => {
     log("resuming poller after wake");
     poller.start();
