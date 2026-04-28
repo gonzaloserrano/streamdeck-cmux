@@ -30,6 +30,7 @@ interface ActionEntry {
 export class WorkspaceButton extends SingletonAction<Settings> {
   private activeActions = new Map<string, ActionEntry>();
   private animTimer: ReturnType<typeof setInterval> | null = null;
+  private lastImage = new Map<string, string>();
 
   constructor(
     private readonly client: CmuxClient,
@@ -52,6 +53,13 @@ export class WorkspaceButton extends SingletonAction<Settings> {
 
   override onWillDisappear(ev: WillDisappearEvent<Settings>): void {
     this.activeActions.delete(ev.action.id);
+    this.lastImage.delete(ev.action.id);
+  }
+
+  private setImageIfChanged(act: KeyAction, img: string): void {
+    if (this.lastImage.get(act.id) === img) return;
+    this.lastImage.set(act.id, img);
+    void act.setImage(img);
   }
 
   override async onKeyDown(ev: KeyDownEvent<Settings>): Promise<void> {
@@ -126,7 +134,7 @@ export class WorkspaceButton extends SingletonAction<Settings> {
       if (title !== "Claude Code" || !ws.isRunning) continue;
       const baseColor = ws.color ?? "#2C2C2E";
       const bg = ws.isSelected ? lightenColor(baseColor, 0.35) : baseColor;
-      void entries[i].action.setImage(colorSvg(bg, {
+      this.setImageIfChanged(entries[i].action, colorSvg(bg, {
         unread: ws.hasUnread,
         running: ws.isRunning,
         progress: ws.progress,
@@ -147,7 +155,7 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     const ws = findByIndex(workspaces, idx);
     if (!ws) {
       debugLog(`button ${idx}: empty`);
-      void act.setImage(emptySvg());
+      this.setImageIfChanged(act, emptySvg());
       void act.setTitle("");
       return;
     }
@@ -158,7 +166,7 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     const isClaudeCode = title === "Claude Code";
     const titleLines = isClaudeCode ? [] : splitTitle(title);
     debugLog(`button ${idx}: "${title}" bg=${bg} selected=${ws.isSelected} unread=${ws.hasUnread} running=${ws.isRunning} progress=${ws.progress}`);
-    void act.setImage(colorSvg(bg, {
+    this.setImageIfChanged(act, colorSvg(bg, {
       unread: ws.hasUnread,
       running: ws.isRunning,
       progress: ws.progress,
