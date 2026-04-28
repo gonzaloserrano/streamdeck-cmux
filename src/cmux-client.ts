@@ -2,7 +2,17 @@ import * as net from "net";
 import * as fs from "fs";
 
 export const SOCKET_PATHS = ["/tmp/cmux.sock", "/tmp/cmux-nightly.sock"];
-const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? SOCKET_PATHS[0];
+
+function resolveDefaultSocketPath(): string {
+  if (process.env.CMUX_SOCKET_PATH) return process.env.CMUX_SOCKET_PATH;
+  try {
+    const recorded = fs.readFileSync("/tmp/cmux-last-socket-path", "utf8").trim();
+    if (recorded) return recorded;
+  } catch {}
+  return SOCKET_PATHS[0];
+}
+
+const DEFAULT_SOCKET_PATH = resolveDefaultSocketPath();
 const RECONNECT_DELAY_MS = 2000;
 
 const LOG_PATH = "/tmp/streamdeck-cmux-debug.log";
