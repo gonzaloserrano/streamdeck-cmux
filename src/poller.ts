@@ -24,23 +24,36 @@ const POLL_INTERVAL_MS = 1000;
 
 export class Poller {
   private listeners = new Set<PollerListener>();
-  private timer: ReturnType<typeof setInterval> | null = null;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private running = false;
+  private polling = false;
   private lastState: Map<string, WorkspaceState> = new Map();
   private generation = 0;
 
   constructor(private client: CmuxClient) {}
 
   start(): void {
-    if (this.timer !== null) return;
-    this.timer = setInterval(() => { void this.poll(); }, POLL_INTERVAL_MS);
-    void this.poll();
+    if (this.running) return;
+    this.running = true;
+    void this.tick();
   }
 
   stop(): void {
+    this.running = false;
     if (this.timer !== null) {
-      clearInterval(this.timer);
+      clearTimeout(this.timer);
       this.timer = null;
     }
+  }
+
+  private async tick(): Promise<void> {
+    if (!this.running) return;
+    if (!this.polling) {
+      this.polling = true;
+      try { await this.poll(); } finally { this.polling = false; }
+    }
+    if (!this.running) return;
+    this.timer = setTimeout(() => { void this.tick(); }, POLL_INTERVAL_MS);
   }
 
   getLastState(): Map<string, WorkspaceState> {
@@ -57,7 +70,11 @@ export class Poller {
   }
 
   forcePoll(): void {
-    void this.poll();
+    if (this.polling) return;
+    void (async () => {
+      this.polling = true;
+      try { await this.poll(); } finally { this.polling = false; }
+    })();
   }
 
   pause(): void {
