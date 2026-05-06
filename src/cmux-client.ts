@@ -1,8 +1,13 @@
 import * as net from "net";
 import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
-export const SOCKET_PATHS = ["/tmp/cmux.sock", "/tmp/cmux-nightly.sock"];
-const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? SOCKET_PATHS[0];
+export const SOCKET_PATH = path.join(
+  os.homedir(),
+  "Library/Application Support/cmux/cmux.sock"
+);
+const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? SOCKET_PATH;
 const RECONNECT_DELAY_MS = 2000;
 
 const LOG_PATH = "/tmp/streamdeck-cmux-debug.log";

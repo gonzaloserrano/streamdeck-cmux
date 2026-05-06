@@ -4,7 +4,6 @@ import { CmuxClient } from "./cmux-client";
 import { Poller } from "./poller";
 import { WorkspaceButton } from "./actions/workspace-button";
 import { NewWorkspaceCcq } from "./actions/new-workspace-ccq";
-import { SocketToggle } from "./actions/socket-toggle";
 import { RestartStreamDeck } from "./actions/restart-streamdeck";
 
 const LOG = "/tmp/streamdeck-cmux-debug.log";
@@ -26,7 +25,6 @@ poller.start();
 log("registering actions");
 streamDeck.actions.registerAction(new WorkspaceButton(client, poller));
 streamDeck.actions.registerAction(new NewWorkspaceCcq(client));
-streamDeck.actions.registerAction(new SocketToggle(client, poller));
 streamDeck.actions.registerAction(new RestartStreamDeck());
 
 streamDeck.system.onSystemDidWakeUp(() => {
