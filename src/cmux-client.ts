@@ -3,11 +3,41 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-export const SOCKET_PATH = path.join(
-  os.homedir(),
-  "Library/Application Support/cmux/cmux.sock"
-);
-const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? SOCKET_PATH;
+const CMUX_DIR = path.join(os.homedir(), "Library/Application Support/cmux");
+
+// Legacy fixed control-socket path. Older cmux builds listened here; newer ones
+// namespace the socket by UID (see resolveSocketPath), so this is a fallback.
+export const SOCKET_PATH = path.join(CMUX_DIR, "cmux.sock");
+
+// cmux records the path of its currently-listening control socket in a marker
+// file and rewrites it on every launch. The location moved between cmux
+// versions, so check the current location first, then the legacy /tmp one.
+const LAST_SOCKET_PATH_FILES = [
+  path.join(CMUX_DIR, "last-socket-path"),
+  "/tmp/cmux-last-socket-path",
+];
+
+/**
+ * Resolve cmux's currently-listening control socket path.
+ *
+ * Newer cmux builds namespace the Unix socket by UID (e.g. `cmux-501.sock`)
+ * instead of the fixed `cmux.sock`, and record the live path in a
+ * `last-socket-path` marker file. A hard-coded path therefore goes stale across
+ * cmux upgrades/restarts, leaving the plugin stuck on ECONNREFUSED with no
+ * workspaces shown. Follow the marker file when present (trying the current and
+ * legacy locations), falling back to the legacy fixed path.
+ */
+export function resolveSocketPath(): string {
+  for (const file of LAST_SOCKET_PATH_FILES) {
+    try {
+      const p = fs.readFileSync(file, "utf8").trim();
+      if (p) return p;
+    } catch {}
+  }
+  return SOCKET_PATH;
+}
+
+const DEFAULT_SOCKET_PATH = process.env.CMUX_SOCKET_PATH ?? resolveSocketPath();
 const RECONNECT_DELAY_MS = 2000;
 
 const LOG_PATH = "/tmp/streamdeck-cmux-debug.log";
@@ -36,9 +66,18 @@ export class CmuxClient {
   private destroyed = false;
   private socketPath: string;
   private generation = 0;
+  // When true, the socket path was set explicitly (constructor arg, reconnect(),
+  // or CMUX_SOCKET_PATH) and connect() should not re-resolve the live socket.
+  private pinned = false;
 
   constructor(socketPath?: string) {
-    this.socketPath = socketPath ?? DEFAULT_SOCKET_PATH;
+    if (socketPath !== undefined) {
+      this.socketPath = socketPath;
+      this.pinned = true;
+    } else {
+      this.socketPath = DEFAULT_SOCKET_PATH;
+      this.pinned = process.env.CMUX_SOCKET_PATH !== undefined;
+    }
     this.connect();
   }
 
@@ -50,6 +89,7 @@ export class CmuxClient {
     debugLog(`reconnect: switching to ${socketPath}`);
     this.generation++;
     this.socketPath = socketPath;
+    this.pinned = true;
     this.connected = false;
     this.destroyed = false;
     this.cancelSettle();
@@ -72,6 +112,13 @@ export class CmuxClient {
 
   private connect(): void {
     if (this.destroyed) return;
+
+    // Self-heal: re-resolve cmux's live socket on each (re)connect so the plugin
+    // follows it when the socket name changes across a cmux upgrade/restart.
+    // Skipped when the path was pinned explicitly.
+    if (!this.pinned) {
+      this.socketPath = resolveSocketPath();
+    }
 
     const gen = this.generation;
     debugLog(`connect: ${this.socketPath} (gen=${gen})`);
