@@ -89,7 +89,11 @@ export class Poller {
     this.start();
   }
 
+  private pollInFlight = false;
+
   private async poll(): Promise<void> {
+    if (this.pollInFlight) return;
+    this.pollInFlight = true;
     const gen = this.generation;
     try {
       debugLog("polling...");
@@ -132,6 +136,8 @@ export class Poller {
       for (const fn of this.listeners) fn(workspaces);
     } catch (err) {
       debugLog(`poll error: ${err}`);
+    } finally {
+      this.pollInFlight = false;
     }
   }
 }

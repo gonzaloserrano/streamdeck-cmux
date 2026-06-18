@@ -16,9 +16,9 @@ function debugLog(msg: string): void {
 }
 
 // After seeing the first newline in a response, wait this long for more data
-// before resolving. Matches cmux.py's select(timeout=0.1) heuristic for
-// multi-line responses (list_workspaces, list_notifications).
-const RESPONSE_SETTLE_MS = 80;
+// before resolving. Must be long enough for cmux.py's select(timeout=0.1) to
+// flush multi-line responses (list_workspaces, sidebar_state).
+const RESPONSE_SETTLE_MS = 40;
 
 interface QueuedCommand {
   command: string;
