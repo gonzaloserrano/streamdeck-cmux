@@ -162,6 +162,14 @@ export class CmuxClient {
     });
   }
 
+  /** Send a command ahead of any queued poll commands. */
+  sendPriority(command: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.queue.unshift({ command, resolve, reject });
+      this.drain();
+    });
+  }
+
   destroy(): void {
     this.destroyed = true;
     this.cancelSettle();

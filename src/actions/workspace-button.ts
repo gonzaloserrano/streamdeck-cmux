@@ -72,7 +72,7 @@ export class WorkspaceButton extends SingletonAction<Settings> {
     const appName = this.client.getSocketPath().includes("nightly") ? "cmux NIGHTLY" : "cmux";
     execFile("osascript", ["-e", `tell application "${appName}" to activate`]);
     try {
-      const result = await this.client.send(`select_workspace ${ws.id}`);
+      const result = await this.client.sendPriority(`select_workspace ${ws.id}`);
       debugLog(`select_workspace result: ${result}`);
       this.poller.forcePoll();
     } catch (err) {
